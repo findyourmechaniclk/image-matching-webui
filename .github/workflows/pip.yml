@@ -27,6 +27,14 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml', 'requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
     - name: Free disk space
       run: |
         sudo rm -rf /usr/share/dotnet
@@ -36,7 +44,7 @@ jobs:
 
     - name: Upgrade setuptools and wheel
       run: |
-        pip install --no-cache-dir --upgrade setuptools wheel
+        pip install --upgrade setuptools wheel
 
     - name: Install dependencies on Ubuntu
       if: runner.os == 'Linux'
@@ -60,12 +68,12 @@ jobs:
 
     - name: Install Python dependencies
       run: |
-        pip install --no-cache-dir pytest pytest-timeout
-        pip install --no-cache-dir -r requirements.txt
+        pip install pytest pytest-timeout
+        pip install -r requirements.txt
         sudo apt-get update && sudo apt-get install ffmpeg libsm6 libxext6 -y
 
     - name: Build and install
-      run: pip install --no-cache-dir .
+      run: pip install .
 
     - name: Test
       run: python -m pytest tests/ -s --timeout=1200
